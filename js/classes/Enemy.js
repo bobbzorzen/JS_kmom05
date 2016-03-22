@@ -17,7 +17,7 @@ Enemy.prototype.draw = function(context) {
 	context.stroke();
 };
 
-Enemy.prototype.update = function(ctx) {
+Enemy.prototype.update = function(p) {
 	if((this.x + this.size*2 >= this.canvas.width) || this.x <= 0) {this.xDir *= -1;}
 	if((this.y + this.size*2 >= this.canvas.height) || this.y <= 0) {this.yDir *= -1;}
   	this.x += this.xDir * this.speed;

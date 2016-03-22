@@ -6,6 +6,12 @@ var Key = {
     RIGHT: 39,
     DOWN: 40,
 
+    reset: function() {
+        for(var key in this._pressed) {
+            this._pressed[key] = false;
+        }
+    },
+
     isDown: function(keyCode) {
         return this._pressed[keyCode];
     },

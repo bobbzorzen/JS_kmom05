@@ -1,5 +1,5 @@
 window.Game = (function(){
-    var canvas, ctx, player;
+    var canvas, ctx, player, animationLoopId;
  
     /**
      * Returns a random number between min (inclusive) and max (exclusive)
@@ -8,8 +8,29 @@ window.Game = (function(){
         return Math.random() * (max - min) + min;
     };
 
+    var win = function () {
+        if(Game.win) {
+            var d = new Date();
+            var winTime = d.getTime();
+            var score = Math.floor(1000000/(winTime - Game.startTime));
+            Game.ctx.clearRect(0, 0, Game.canvas.width, Game.canvas.height);
+            console.log('Your score was: ' + score);
+            var popup = window.confirm('Your score was: ' + score + "! Do you wish to continue?");
+            if(popup) {
+                reset();
+            } 
+            else {
+                Game.ctx.clearRect(0, 0, Game.canvas.width, Game.canvas.height);
+                window.cancelAnimationFrame(Game.animationLoopId);
+                Game.animationLoopId = undefined;
+            }
+            
+        }
+        
+    }
+
     var spawnEnemies = function () {
-        var nrOfEnemies = 100;
+        var nrOfEnemies = 50;
         var enemies = [];
         var speed, xDir, yDir;
         for(var i = 0; i < nrOfEnemies; i++) {
@@ -23,8 +44,17 @@ window.Game = (function(){
 
     var update = function () {
         Game.player.update();
+        if(Game.enemy.length === 0) {
+            Game.win = true;
+            win();
+        }
         for(var i = 0; i < Game.enemy.length; i++) {
-            Game.enemy[i].update();
+            if(Game.player.intersects(Game.enemy[i])) {
+                Game.enemy.remove(i--);
+            }else {
+                Game.enemy[i].update(Game.player);
+            }
+            
         }
     };
 
@@ -40,15 +70,26 @@ window.Game = (function(){
         Game.canvas = document.createElement("canvas");
         Game.canvas.width = 512;
         Game.canvas.height = 480;
-        document.body.appendChild(Game.canvas);
+        document.getElementById(canvasId).appendChild(Game.canvas);
         Game.ctx = Game.canvas.getContext("2d");
         Game.player = new Player(Game.canvas);
         Game.enemy = spawnEnemies(); //new Enemy(Game.canvas, 10);
+        var d = new Date();
+        Game.startTime = d.getTime();
+    };
+
+    var reset = function () {
+        Key.reset();
+        Game.win = false;
+        Game.player = new Player(Game.canvas);
+        Game.enemy = spawnEnemies();
+        var d = new Date();
+        Game.startTime = d.getTime();
     };
 
     var gameLoop = function () {
         lastGameTick = Date.now();
-        requestAnimFrame(gameLoop);
+        Game.animationLoopId = requestAnimFrame(gameLoop);
         update();
         render();
     };
